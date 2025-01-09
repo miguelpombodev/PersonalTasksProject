@@ -3,6 +3,7 @@ using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
+using PersonalTasksProject.Extensions;
 
 namespace PersonalTasksProject.Controllers;
 
@@ -66,6 +67,12 @@ public class UserController : ControllerBase
     [HttpPut("update/{userId:Guid}")]
     public async Task<IActionResult> UpdateUserAsync(Guid userId, CreatedUserResponseDto body)
     {
+        if (body.AreAllPropertiesNullables())
+            return StatusCode(StatusCodes.Status400BadRequest, new
+            {
+                detail = "Please provide valid data! Check your form again!"
+            });
+        
         var user = await _userService.GetUserByIdAsync(userId);
 
         if (user is null)

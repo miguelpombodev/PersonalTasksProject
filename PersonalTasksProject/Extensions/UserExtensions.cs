@@ -13,6 +13,9 @@ public static class UserExtensions
             
         if (!string.IsNullOrEmpty(dto.Email))
             user.Email = dto.Email;
+        
+        if(!string.IsNullOrEmpty(dto.Avatar))
+            user.AvatarUrl = dto.Avatar;
 
         user.UpdatedAt = DateTime.UtcNow;
     }
