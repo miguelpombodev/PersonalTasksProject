@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PersonalTasksProject.Business.Interfaces;
+using PersonalTasksProject.DTOs.Requests;
+using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
 
 namespace PersonalTasksProject.Controllers;
@@ -16,13 +18,39 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    [HttpGet("get-user/{id:Guid}")]
+    public async Task<IActionResult> GetOneUserAsync(Guid id)
+    {
+        var user = await _userService.GetUserByIdAsync(id);
+
+        if (user is null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new
+            {
+                detail = "User not found"
+            });
+        }
+
+        return StatusCode(StatusCodes.Status200OK, new
+        {
+            user = new CreatedUserCompletedResponseDto(user.Name, user.Email, user.AvatarUrl, user.Id)
+        });
+    }
+
     [HttpPost("create")]
     public async Task<IActionResult> CreateUserAsync(
-        User user
+        CreateUserDto body
         )
     {
         try
         {
+            User user = new User
+            {
+                Name = body.Name,
+                Email = body.Email,
+                Password = body.Password,
+            };
+            
             await _userService.CreateUserAsync(user);
             return StatusCode(StatusCodes.Status201Created, new
             {
@@ -33,5 +61,47 @@ public class UserController : ControllerBase
         {
             return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
         }
+    }
+
+    [HttpPut("update/{userId:Guid}")]
+    public async Task<IActionResult> UpdateUserAsync(Guid userId, CreatedUserResponseDto body)
+    {
+        var user = await _userService.GetUserByIdAsync(userId);
+
+        if (user is null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new
+            {
+                detail = "User not found"
+            });
+        }
+
+        _userService.UpdateUserAsync(user, body);
+
+        return StatusCode(StatusCodes.Status200OK, new
+        {
+            detail = "success!"
+        });
+    }
+
+    [HttpDelete("delete/{userId:Guid}")]
+    public async Task<IActionResult> DeleteUserAsync(Guid userId)
+    {
+        var user = await _userService.GetUserByIdAsync(userId);
+
+        if (user is null)
+        {
+            return StatusCode(StatusCodes.Status404NotFound, new
+            {
+                detail = "User not found"
+            });
+        }
+
+        await _userService.DeleteUserAsync(userId);
+
+        return StatusCode(StatusCodes.Status200OK, new
+        {
+            detail = "success!"
+        });
     }
 }

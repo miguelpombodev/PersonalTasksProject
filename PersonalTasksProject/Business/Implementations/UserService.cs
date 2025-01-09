@@ -1,5 +1,8 @@
 using PersonalTasksProject.Business.Interfaces;
+using PersonalTasksProject.DTOs.Requests;
+using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
+using PersonalTasksProject.Extensions;
 using PersonalTasksProject.Repositories.Interfaces;
 
 namespace PersonalTasksProject.Business.Implementations;
@@ -13,9 +16,16 @@ public class UserService: IUserService
         _userRepository = userRepository;
     }
 
-    public Task<User> GetUserByIdAsync(int id)
+    public async Task<User?> GetUserByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        User result = await _userRepository.GetByIdAsync(id);
+
+        if (result is null)
+        {
+            return null;
+        }
+
+        return result;
     }
 
     public async Task<User> CreateUserAsync(User user)
@@ -24,13 +34,24 @@ public class UserService: IUserService
         return user;
     }
 
-    public Task<User> UpdateUserAsync(User user)
+    public Task<User> UpdateUserAsync(User user, CreatedUserResponseDto body)
     {
-        throw new NotImplementedException();
+        user.UpdateFromDto(body);
+        _userRepository.UpdateAsync(user);
+        return Task.FromResult(user);
     }
+    
 
-    public Task<User> DeleteUserAsync(int id)
+    public async Task<bool?> DeleteUserAsync(Guid id)
     {
-        throw new NotImplementedException();
+        User user = await _userRepository.GetByIdAsync(id);
+        
+        if (user is null)
+        {
+            return null;
+        }
+
+        await _userRepository.DeleteByIdAsync(id);
+        return true;
     }
 }

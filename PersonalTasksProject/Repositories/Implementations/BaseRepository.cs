@@ -4,25 +4,33 @@ using PersonalTasksProject.Repositories.Interfaces;
 
 namespace PersonalTasksProject.Repositories.Implementations;
 
-public abstract class BaseRepository<T>(AppDbContext context) : IBaseRepository<T>
+public abstract class BaseRepository<T>() : IBaseRepository<T>
     where T : class
 {
+    protected readonly AppDbContext _context;
+    protected readonly DbSet<T> _dbSet;
+
+    public BaseRepository(AppDbContext context) : this()
+    {
+        _context = context;
+        _dbSet = _context.Set<T>();
+    }
     public virtual async Task<T?> GetByIdAsync(Guid id)
     {
-        return await context.Set<T>().FindAsync(id);
+        return await _dbSet.FindAsync(id);
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await context.Set<T>().AsNoTracking().ToListAsync();
+        return await _dbSet.AsNoTracking().ToListAsync();
     }
 
     public virtual async void AddAsync(T entity)
     {
         try
         {
-            await context.Set<T>().AddAsync(entity);
-            await context.SaveChangesAsync();
+            await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbUpdateException)
         {
@@ -39,8 +47,8 @@ public abstract class BaseRepository<T>(AppDbContext context) : IBaseRepository<
     {
         try
         {
-            context.Set<T>().Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
+            _dbSet.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbUpdateException)
         {
@@ -52,12 +60,13 @@ public abstract class BaseRepository<T>(AppDbContext context) : IBaseRepository<
         }
     }
 
-    public virtual async void DeleteAsync(T entity)
+    public virtual async Task<bool> DeleteByIdAsync(Guid id)
     {
         try
         {
-            context.Set<T>().Remove(entity);
-            await context.SaveChangesAsync();
+            var rowsAffected = await _dbSet.Where(e => EF.Property<Guid>(e, "Id") == id).ExecuteDeleteAsync();
+
+            return rowsAffected > 0;
         }
         catch (DbUpdateException dbUpdateException)
         {
@@ -67,5 +76,7 @@ public abstract class BaseRepository<T>(AppDbContext context) : IBaseRepository<
         {
             Console.WriteLine($"General Error - {exception.Message}");
         }
+
+        return false;
     }
 }
