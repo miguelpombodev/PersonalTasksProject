@@ -8,4 +8,7 @@ public interface ITasksService
 {
     Task<UserTask> CreateUserTaskAsync(UserTask task);
     Task<IEnumerable<CreatedUserTasks>> GetAllUserTaskAsync(Guid userId);
+    
+    Task<UserTask> GetUserTaskByIdAsync(Guid userTaskId);
+    Task<bool> DeleteUserTaskAsync(Guid taskId);
 }

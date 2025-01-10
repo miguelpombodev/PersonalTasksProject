@@ -56,5 +56,26 @@ namespace PersonalTasksProject.Controllers
 
             return StatusCode(StatusCodes.Status200OK, tasksList);
         }
+
+        [HttpDelete("delete/{taskId:Guid}")]
+        public async Task<IActionResult> DeleteTaskAsync(Guid taskId)
+        {
+            var checkTaskUser = await _tasksService.GetUserTaskByIdAsync(taskId);
+
+            if (checkTaskUser is null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new
+                {
+                    detail = "Task not found"
+                });
+            }
+
+            var result = await _tasksService.DeleteUserTaskAsync(taskId);
+
+            return StatusCode(StatusCodes.Status200OK, new
+            {
+                detail = "Task successfully deleted!"
+            });
+        }
     }
 }

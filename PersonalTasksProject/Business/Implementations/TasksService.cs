@@ -41,4 +41,15 @@ public class TasksService : ITasksService
             Priority = task.TaskPriorizationId
         });
     }
+
+    public async Task<UserTask?> GetUserTaskByIdAsync(Guid userTaskId)
+    {
+        return await _tasksRepository.GetByIdAsync(userTaskId); 
+    }
+
+    public async Task<bool> DeleteUserTaskAsync(Guid taskId)
+    {
+        await _tasksRepository.DeleteByIdAsync(taskId);
+        return true;
+    }
 }
