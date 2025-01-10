@@ -22,7 +22,12 @@ public class UserTask : BaseIdentity
     [Required]
     public int TaskPriorizationId { get; set; }
     
+    [Required]
+    public Guid UserId { get; set; }
+    
     public DateTime? CompletionDate { get; set; }
     
     public TaskPriorization Status { get; set; }
+    
+    public User User { get; set; }
 }
