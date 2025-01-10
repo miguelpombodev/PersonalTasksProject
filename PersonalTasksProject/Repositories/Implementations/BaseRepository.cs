@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PersonalTasksProject.Context;
 using PersonalTasksProject.Repositories.Interfaces;
@@ -20,27 +21,30 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         return await _dbSet.FindAsync(id);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public async Task<IEnumerable<T>> GetAllByPropertyAsync(Expression<Func<T, bool>> expression)
     {
-        return await _dbSet.AsNoTracking().ToListAsync();
+        return await _dbSet.AsNoTracking().Where(expression).ToListAsync();
     }
 
-    public virtual async void AddAsync(T entity)
+    public virtual async Task<T> AddAsync(T entity)
     {
         try
         {
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
+
+            return entity;
         }
         catch (DbUpdateException dbUpdateException)
         {
             Console.WriteLine($"Database Error - {dbUpdateException.Message}");
+            throw;
         }
         catch (Exception exception)
         {
             Console.WriteLine($"General Error - {exception.Message}");
+            throw;
         }
-
     }
 
     public virtual async void UpdateAsync(T entity)
@@ -53,10 +57,12 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         catch (DbUpdateException dbUpdateException)
         {
             Console.WriteLine($"Database Error - {dbUpdateException.Message}");
+            throw;
         }
         catch (Exception exception)
         {
             Console.WriteLine($"General Error - {exception.Message}");
+            throw;
         }
     }
 
@@ -71,12 +77,12 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         catch (DbUpdateException dbUpdateException)
         {
             Console.WriteLine($"Database Error - {dbUpdateException.Message}");
+            throw;
         }
         catch (Exception exception)
         {
             Console.WriteLine($"General Error - {exception.Message}");
+            throw;
         }
-
-        return false;
     }
 }

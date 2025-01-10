@@ -17,7 +17,7 @@ public class UserTask : BaseIdentity
     public string Description { get; set; }
     
     [Required]
-    public DateTime DueDate { get; set; }
+    public DateOnly DueDate { get; set; }
     
     [Required]
     public int TaskPriorizationId { get; set; }
@@ -25,7 +25,7 @@ public class UserTask : BaseIdentity
     [Required]
     public Guid UserId { get; set; }
     
-    public DateTime? CompletionDate { get; set; }
+    public DateOnly? CompletionDate { get; set; }
     
     public TaskPriorization Status { get; set; }
     

@@ -24,7 +24,9 @@ builder.Services.AddDbContext<AppDbContext>(
     );
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITasksService, TasksService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITasksRepositories, TasksRepository>();
 
 var app = builder.Build();
 
