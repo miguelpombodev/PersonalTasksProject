@@ -2,7 +2,7 @@ using PersonalTasksProject.Entities;
 
 namespace PersonalTasksProject.Repositories.Interfaces;
 
-public interface ITasksRepositories : IBaseRepository<UserTask> 
+public interface ITasksRepository : IBaseRepository<UserTask> 
 {
     
 }

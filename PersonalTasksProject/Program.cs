@@ -1,8 +1,13 @@
+using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PersonalTasksProject.Business.Implementations;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.Context;
+using PersonalTasksProject.Providers;
 using PersonalTasksProject.Repositories.Implementations;
 using PersonalTasksProject.Repositories.Interfaces;
 
@@ -26,7 +31,26 @@ builder.Services.AddDbContext<AppDbContext>(
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITasksService, TasksService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITasksRepositories, TasksRepository>();
+builder.Services.AddScoped<ITasksRepository, TasksRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddSingleton<TokenProvider>();
+
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(option =>
+        {
+            option.RequireHttpsMetadata = false;
+            option.TokenValidationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])),
+                ValidIssuer = builder.Configuration["JWT:Issuer"],
+                ValidAudience = builder.Configuration["JWT:Audience"],
+                ClockSkew = TimeSpan.Zero
+            };
+        }
+    );
 
 var app = builder.Build();
 
@@ -41,5 +65,10 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
 
 app.Run();

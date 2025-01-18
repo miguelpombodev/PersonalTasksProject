@@ -9,18 +9,18 @@ namespace PersonalTasksProject.Business.Implementations;
 
 public class TasksService : ITasksService
 {
-    private readonly ITasksRepositories _tasksRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     private Expression<Func<UserTask, bool>> _getTasksByGuidFilter;
 
-    public TasksService(ITasksRepositories tasksRepository)
+    public TasksService(IUnitOfWork unitOfWork)
     {
-        _tasksRepository = tasksRepository;
+        _unitOfWork = unitOfWork;
     }
     
     public async Task<UserTask> CreateUserTaskAsync(UserTask userTask)
     {
-        await _tasksRepository.AddAsync(userTask);
+        await _unitOfWork.TasksRepository.AddAsync(userTask);
         
         return userTask;
     }
@@ -29,7 +29,7 @@ public class TasksService : ITasksService
     {
         _getTasksByGuidFilter = tasks => tasks.UserId == userId;
         
-        var tasks = await _tasksRepository.GetAllByPropertyAsync(_getTasksByGuidFilter);
+        var tasks = await _unitOfWork.TasksRepository.GetAllByPropertyAsync(_getTasksByGuidFilter);
         
         return tasks.OrderBy(task => task.TaskPriorizationId).Select(task => new CreatedUserTasks
         {
@@ -44,12 +44,12 @@ public class TasksService : ITasksService
 
     public async Task<UserTask?> GetUserTaskByIdAsync(Guid userTaskId)
     {
-        return await _tasksRepository.GetByIdAsync(userTaskId); 
+        return await _unitOfWork.TasksRepository.GetByIdAsync(userTaskId); 
     }
 
     public async Task<bool> DeleteUserTaskAsync(Guid taskId)
     {
-        await _tasksRepository.DeleteByIdAsync(taskId);
+        await _unitOfWork.TasksRepository.DeleteByIdAsync(taskId);
         return true;
     }
 }

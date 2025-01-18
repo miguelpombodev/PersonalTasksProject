@@ -21,6 +21,11 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         return await _dbSet.FindAsync(id);
     }
 
+    public async Task<T?> GetByPropertyAsync(Expression<Func<T, bool>> expression)
+    {
+        return await _dbSet.FirstOrDefaultAsync(expression);
+    }
+
     public async Task<IEnumerable<T>> GetAllByPropertyAsync(Expression<Func<T, bool>> expression)
     {
         return await _dbSet.AsNoTracking().Where(expression).ToListAsync();

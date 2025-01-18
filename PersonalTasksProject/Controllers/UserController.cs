@@ -4,6 +4,7 @@ using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Extensions;
+using PersonalTasksProject.Providers;
 
 namespace PersonalTasksProject.Controllers;
 
@@ -13,10 +14,30 @@ public class UserController : ControllerBase
 {
     
     private readonly IUserService _userService;
+    private readonly TokenProvider _tokenProvider;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, TokenProvider tokenProvider)
     {
         _userService = userService;
+        _tokenProvider = tokenProvider;
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginUserRequest request)
+    {
+        var user = await _userService.GetUserByEmailAsync(request.Email);
+        
+        if (user is null) return StatusCode(StatusCodes.Status404NotFound, new
+        {
+            detail = "Please check your email address or password  not found"
+        });
+
+        var token = _tokenProvider.CreateToken(user);
+
+        return StatusCode(StatusCodes.Status200OK, new
+        {
+            token = token,
+        });
     }
 
     [HttpGet("get-user/{id:Guid}")]

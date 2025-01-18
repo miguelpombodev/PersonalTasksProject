@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.DTOs.Requests;
@@ -8,6 +8,7 @@ namespace PersonalTasksProject.Controllers
 {
     [Route("api/tasks")]
     [ApiController]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly ITasksService _tasksService;
