@@ -12,4 +12,6 @@ public interface ITasksService
     
     Task<ServiceResult<UserTask>> GetUserTaskByIdAsync(Guid userTaskId);
     Task<bool> DeleteUserTaskAsync(Guid taskId);
+    
+    Task<ServiceResult<IEnumerable<TaskPriorization>>> GetTasksPrioritiesAsync();
 }

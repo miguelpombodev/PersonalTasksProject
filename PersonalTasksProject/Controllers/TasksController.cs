@@ -88,5 +88,13 @@ namespace PersonalTasksProject.Controllers
                 detail = "Task successfully deleted!"
             });
         }
+
+        [HttpGet("get/tasks-priorities")]
+        public async Task<IActionResult> GetTasksPrioritiesAsync()
+        {
+            var taskPriorities = await _tasksService.GetTasksPrioritiesAsync();
+            
+            return StatusCode(StatusCodes.Status200OK, taskPriorities.Result);
+        }
     }
 }

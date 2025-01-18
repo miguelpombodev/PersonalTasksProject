@@ -60,4 +60,11 @@ public class TasksService : ITasksService
         await _unitOfWork.TasksRepository.DeleteByIdAsync(taskId);
         return true;
     }
+
+    public async Task<ServiceResult<IEnumerable<TaskPriorization>>> GetTasksPrioritiesAsync()
+    {
+        var tasksPriorizationList = await _unitOfWork.TasksRepository.GetPrioritiesListAsync();
+        
+        return ServiceResult<IEnumerable<TaskPriorization>>.Success(tasksPriorizationList);
+    }
 }
