@@ -9,12 +9,12 @@ public class UserTask : BaseIdentity
     [Required]
     [StringLength(50)]
     [MinLength(3)]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     
     [Required]
     [StringLength(200)]
     [MinLength(3)]
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
     
     [Required]
     public DateOnly DueDate { get; set; }
@@ -29,5 +29,5 @@ public class UserTask : BaseIdentity
     
     public TaskPriorization Status { get; set; }
     
-    public User User { get; set; }
+    public User User { get; set; } 
 }
