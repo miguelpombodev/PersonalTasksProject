@@ -3,6 +3,7 @@ using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
+using PersonalTasksProject.Helpers;
 using PersonalTasksProject.Repositories.Interfaces;
 
 namespace PersonalTasksProject.Business.Implementations;
@@ -10,28 +11,24 @@ namespace PersonalTasksProject.Business.Implementations;
 public class TasksService : ITasksService
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    private Expression<Func<UserTask, bool>> _getTasksByGuidFilter;
-
+    
     public TasksService(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
     
-    public async Task<UserTask> CreateUserTaskAsync(UserTask userTask)
+    public async Task<ServiceResult<UserTask>> CreateUserTaskAsync(UserTask userTask)
     {
         await _unitOfWork.TasksRepository.AddAsync(userTask);
         
-        return userTask;
+        return ServiceResult<UserTask>.Success(userTask);
     }
 
-    public async Task<IEnumerable<CreatedUserTasks>> GetAllUserTaskAsync(Guid userId)
+    public async Task<ServiceResult<IEnumerable<CreatedUserTasks>>> GetAllUserTaskAsync(Guid userId)
     {
-        _getTasksByGuidFilter = tasks => tasks.UserId == userId;
+        var resultTasks = await _unitOfWork.TasksRepository.GetAllByPropertyAsync(tasks => tasks.UserId == userId);
         
-        var tasks = await _unitOfWork.TasksRepository.GetAllByPropertyAsync(_getTasksByGuidFilter);
-        
-        return tasks.OrderBy(task => task.TaskPriorizationId).Select(task => new CreatedUserTasks
+        var tasks = resultTasks.OrderBy(task => task.TaskPriorizationId).Select(task => new CreatedUserTasks
         {
             Id = task.Id,
             Title = task.Title,
@@ -40,11 +37,20 @@ public class TasksService : ITasksService
             DueDate = task.DueDate,
             Priority = task.TaskPriorizationId
         });
+        
+        return ServiceResult<IEnumerable<CreatedUserTasks>>.Success(tasks);
     }
 
-    public async Task<UserTask?> GetUserTaskByIdAsync(Guid userTaskId)
+    public async Task<ServiceResult<UserTask>> GetUserTaskByIdAsync(Guid userTaskId)
     {
-        return await _unitOfWork.TasksRepository.GetByIdAsync(userTaskId); 
+        var userTaskResult = await _unitOfWork.TasksRepository.GetByIdAsync(userTaskId);
+
+        if (userTaskResult == null)
+        {
+            return ServiceResult<UserTask>.Failure("Task not found");
+        }
+
+        return ServiceResult<UserTask>.Success(userTaskResult);
     }
 
     public async Task<bool> DeleteUserTaskAsync(Guid taskId)

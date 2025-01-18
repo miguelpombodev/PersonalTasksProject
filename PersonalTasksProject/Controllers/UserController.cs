@@ -25,14 +25,14 @@ public class UserController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginUserRequest request)
     {
-        var user = await _userService.GetUserByEmailAsync(request.Email);
+        var result = await _userService.GetUserByEmailAsync(request.Email);
         
-        if (user is null) return StatusCode(StatusCodes.Status404NotFound, new
+        if (!result.IsSuccess) return StatusCode(StatusCodes.Status404NotFound, new
         {
-            detail = "Please check your email address or password  not found"
+            detail = result.ErrorMessage
         });
 
-        var token = _tokenProvider.CreateToken(user);
+        var token = _tokenProvider.CreateToken(result.Result);
 
         return StatusCode(StatusCodes.Status200OK, new
         {
@@ -43,19 +43,16 @@ public class UserController : ControllerBase
     [HttpGet("get-user/{id:Guid}")]
     public async Task<IActionResult> GetOneUserAsync(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        var result = await _userService.GetUserByIdAsync(id);
 
-        if (user is null)
+        if (!result.IsSuccess) return StatusCode(StatusCodes.Status404NotFound, new
         {
-            return StatusCode(StatusCodes.Status404NotFound, new
-            {
-                detail = "User not found"
-            });
-        }
+            detail = result.ErrorMessage
+        });
 
         return StatusCode(StatusCodes.Status200OK, new
         {
-            user = new CreatedUserCompletedResponseDto(user.Name, user.Email, user.AvatarUrl, user.Id)
+            user = new CreatedUserCompletedResponseDto(result.Result.Name, result.Result.Email, result.Result.AvatarUrl, result.Result.Id)
         });
     }
 
@@ -66,7 +63,7 @@ public class UserController : ControllerBase
     {
         try
         {
-            User user = new User
+            var user = new User
             {
                 Name = body.Name,
                 Email = body.Email,
@@ -94,17 +91,14 @@ public class UserController : ControllerBase
                 detail = "Please provide valid data! Check your form again!"
             });
         
-        var user = await _userService.GetUserByIdAsync(userId);
+        var result = await _userService.GetUserByIdAsync(userId);
 
-        if (user is null)
+        if (!result.IsSuccess) return StatusCode(StatusCodes.Status404NotFound, new
         {
-            return StatusCode(StatusCodes.Status404NotFound, new
-            {
-                detail = "User not found"
-            });
-        }
+            detail = result.ErrorMessage
+        });
 
-        _userService.UpdateUserAsync(user, body);
+        await _userService.UpdateUserAsync(result.Result, body);
 
         return StatusCode(StatusCodes.Status200OK, new
         {
@@ -115,15 +109,12 @@ public class UserController : ControllerBase
     [HttpDelete("delete/{userId:Guid}")]
     public async Task<IActionResult> DeleteUserAsync(Guid userId)
     {
-        var user = await _userService.GetUserByIdAsync(userId);
+        var resultUser = await _userService.GetUserByIdAsync(userId);
 
-        if (user is null)
+        if (!resultUser.IsSuccess) return StatusCode(StatusCodes.Status404NotFound, new
         {
-            return StatusCode(StatusCodes.Status404NotFound, new
-            {
-                detail = "User not found"
-            });
-        }
+            detail = resultUser.ErrorMessage
+        });
 
         await _userService.DeleteUserAsync(userId);
 

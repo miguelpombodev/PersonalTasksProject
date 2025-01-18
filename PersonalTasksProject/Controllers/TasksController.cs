@@ -23,7 +23,7 @@ namespace PersonalTasksProject.Controllers
         [HttpPost("create/{userId:Guid}")]
         public async Task<IActionResult> CreateTaskAsync(Guid userId, CreateTaskDto body)
         {
-            UserTask task = new UserTask
+            var task = new UserTask
             {
                 UserId = userId,
                 Title = body.Title,
@@ -43,35 +43,35 @@ namespace PersonalTasksProject.Controllers
         [HttpGet("get/{userId:Guid}")]
         public async Task<IActionResult> GetAllTasksAsync(Guid userId)
         {
-            var checkUser = await _userService.GetUserByIdAsync(userId);
+            var checkUserResult = await _userService.GetUserByIdAsync(userId);
 
-            if (checkUser is null)
+            if (!checkUserResult.IsSuccess)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new
                 {
-                    detail = "User not found"
+                    detail = checkUserResult.ErrorMessage
                 });
             }
 
             var tasksList = await _tasksService.GetAllUserTaskAsync(userId);
 
-            return StatusCode(StatusCodes.Status200OK, tasksList);
+            return StatusCode(StatusCodes.Status200OK, tasksList.Result);
         }
 
         [HttpDelete("delete/{taskId:Guid}")]
         public async Task<IActionResult> DeleteTaskAsync(Guid taskId)
         {
-            var checkTaskUser = await _tasksService.GetUserTaskByIdAsync(taskId);
+            var checkTaskUserResult = await _tasksService.GetUserTaskByIdAsync(taskId);
 
-            if (checkTaskUser is null)
+            if (checkTaskUserResult.IsSuccess)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new
                 {
-                    detail = "Task not found"
+                    detail = checkTaskUserResult.ErrorMessage
                 });
             }
 
-            var result = await _tasksService.DeleteUserTaskAsync(taskId);
+            await _tasksService.DeleteUserTaskAsync(taskId);
 
             return StatusCode(StatusCodes.Status200OK, new
             {

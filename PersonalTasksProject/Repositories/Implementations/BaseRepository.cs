@@ -36,7 +36,6 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         try
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
 
             return entity;
         }
@@ -57,7 +56,6 @@ public abstract class BaseRepository<T>() : IBaseRepository<T>
         try
         {
             _dbSet.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbUpdateException)
         {

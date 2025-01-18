@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
 using PersonalTasksProject.Business.Interfaces;
-using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Extensions;
+using PersonalTasksProject.Helpers;
 using PersonalTasksProject.Repositories.Implementations;
-using PersonalTasksProject.Repositories.Interfaces;
 
 namespace PersonalTasksProject.Business.Implementations;
 
@@ -18,52 +16,54 @@ public class UserService: IUserService
         _unitOfWork = unitOfWork;
     }
 
-    [Authorize]
-    public async Task<User?> GetUserByIdAsync(Guid id)
+    public async Task<ServiceResult<User>> GetUserByIdAsync(Guid id)
     {
-        User result = await _unitOfWork.UserRepository.GetByIdAsync(id);
+        var result = await _unitOfWork.UserRepository.GetByIdAsync(id);
 
         if (result is null)
         {
-            return null;
+            return ServiceResult<User>.Failure("User not found");
         }
 
-        return result;
+        return ServiceResult<User>.Success(result);
     }
 
-    [Authorize]
-    public async Task<User?> GetUserByEmailAsync(string email)
+    public async Task<ServiceResult<User>> GetUserByEmailAsync(string email)
     {
-        User result = await _unitOfWork.UserRepository.GetByPropertyAsync(user => user.Email == email);
+        var result = await _unitOfWork.UserRepository.GetByPropertyAsync(user => user.Email == email);
         
         if (result is null)
         {
-            return null;
+            return ServiceResult<User>.Failure("Please check your email address or password  not found");
         }
 
-        return result;
+        return ServiceResult<User>.Success(result);
         
     }
 
-    public async Task<User> CreateUserAsync(User user)
+    public async Task<ServiceResult<User>> CreateUserAsync(User user)
     {
-        _unitOfWork.UserRepository.AddAsync(user);
-        return user;
+        await _unitOfWork.UserRepository.AddAsync(user);
+
+        _unitOfWork.Commit();
+        
+        return ServiceResult<User>.Success(user);
     }
 
-    [Authorize]
-    public Task<User> UpdateUserAsync(User user, CreatedUserResponseDto body)
+    public async Task<ServiceResult<User>> UpdateUserAsync(User user, CreatedUserResponseDto body)
     {
         user.UpdateFromDto(body);
         _unitOfWork.UserRepository.UpdateAsync(user);
-        return Task.FromResult(user);
+        
+        _unitOfWork.Commit();
+
+        return ServiceResult<User>.Success(user);
     }
     
 
-    [Authorize]
     public async Task<bool?> DeleteUserAsync(Guid id)
     {
-        User user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
         
         if (user is null)
         {
@@ -71,6 +71,9 @@ public class UserService: IUserService
         }
 
         await _unitOfWork.UserRepository.DeleteByIdAsync(id);
+        
+        _unitOfWork.Commit();
+
         return true;
     }
 }
