@@ -1,8 +1,10 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.Entities;
+using PersonalTasksProject.Providers;
 
 namespace PersonalTasksProject.Controllers
 {
@@ -13,37 +15,45 @@ namespace PersonalTasksProject.Controllers
     {
         private readonly ITasksService _tasksService;
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public TasksController(ITasksService tasksService, IUserService userService)
+        public TasksController(ITasksService tasksService, IUserService userService, IMapper mapper)
         {
             _tasksService = tasksService;
             _userService = userService;
+            _mapper = mapper;
         }
         
-        [HttpPost("create/{userId:Guid}")]
-        public async Task<IActionResult> CreateTaskAsync(Guid userId, CreateTaskDto body)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateTaskAsync(
+            CreateTaskDto body,
+            [FromServices] TokenProvider tokenProvider,
+            [FromHeader(Name = "Authorization")] string token)
         {
-            var task = new UserTask
-            {
-                UserId = userId,
-                Title = body.Title,
-                Description = body.Description,
-                DueDate = body.DueDate,
-                TaskPriorizationId = body.Priority
-            };
+            var decodedToken = tokenProvider.DecodeToken(token);
+
+            var userExisted = await _userService.GetUserByEmailAsync(decodedToken);
+            
+            body.UserId = userExisted.Result.Id;
+            
+            var task = _mapper.Map<CreateTaskDto, UserTask>(body);
 
             await _tasksService.CreateUserTaskAsync(task);
-            
+
             return StatusCode(StatusCodes.Status201Created, new
             {
                 task = body
-            });    
+            });
         }
 
-        [HttpGet("get/{userId:Guid}")]
-        public async Task<IActionResult> GetAllTasksAsync(Guid userId)
+        [HttpGet("get")]
+        public async Task<IActionResult> GetAllTasksAsync(
+            [FromServices] TokenProvider tokenProvider,
+            [FromHeader(Name = "Authorization")] string token)
         {
-            var checkUserResult = await _userService.GetUserByIdAsync(userId);
+            var decodedToken = tokenProvider.DecodeToken(token);
+
+            var checkUserResult = await _userService.GetUserByEmailAsync(decodedToken);
 
             if (!checkUserResult.IsSuccess)
             {
@@ -53,7 +63,7 @@ namespace PersonalTasksProject.Controllers
                 });
             }
 
-            var tasksList = await _tasksService.GetAllUserTaskAsync(userId);
+            var tasksList = await _tasksService.GetAllUserTaskAsync(checkUserResult.Result.Id);
 
             return StatusCode(StatusCodes.Status200OK, tasksList.Result);
         }
@@ -63,7 +73,7 @@ namespace PersonalTasksProject.Controllers
         {
             var checkTaskUserResult = await _tasksService.GetUserTaskByIdAsync(taskId);
 
-            if (checkTaskUserResult.IsSuccess)
+            if (!checkTaskUserResult.IsSuccess)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new
                 {

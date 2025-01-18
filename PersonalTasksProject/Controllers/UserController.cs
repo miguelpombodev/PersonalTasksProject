@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.DTOs.Requests;
@@ -15,11 +16,13 @@ public class UserController : ControllerBase
     
     private readonly IUserService _userService;
     private readonly TokenProvider _tokenProvider;
+    private readonly IMapper _mapper;
 
-    public UserController(IUserService userService, TokenProvider tokenProvider)
+    public UserController(IUserService userService, TokenProvider tokenProvider, IMapper mapper)
     {
         _userService = userService;
         _tokenProvider = tokenProvider;
+        _mapper = mapper;
     }
 
     [HttpPost("login")]
@@ -50,27 +53,22 @@ public class UserController : ControllerBase
             detail = result.ErrorMessage
         });
 
-        return StatusCode(StatusCodes.Status200OK, new
-        {
-            user = new CreatedUserCompletedResponseDto(result.Result.Name, result.Result.Email, result.Result.AvatarUrl, result.Result.Id)
-        });
+        return StatusCode(
+            StatusCodes.Status200OK, 
+            new CreatedUserCompletedResponseDto(result.Result.Name, result.Result.Email, result.Result.AvatarUrl, result.Result.Id)
+        );
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateUserAsync(
-        CreateUserDto body
+        [FromBody] CreateUserDto body
         )
     {
         try
         {
-            var user = new User
-            {
-                Name = body.Name,
-                Email = body.Email,
-                Password = body.Password,
-            };
+            var mappedUser = _mapper.Map<CreateUserDto, User>(body);
             
-            await _userService.CreateUserAsync(user);
+            await _userService.CreateUserAsync(mappedUser);
             return StatusCode(StatusCodes.Status201Created, new
             {
                 detail = "success!"

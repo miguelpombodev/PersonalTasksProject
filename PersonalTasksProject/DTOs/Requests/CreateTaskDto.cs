@@ -1,9 +1,14 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace PersonalTasksProject.DTOs.Requests;
 
-public class CreateTaskDto
+public class CreateTaskDto : IRequestDto
 {
+    [JsonIgnore]
+    public Guid? UserId { get; set; } = null;
+    
     [Required]
     [StringLength(50, ErrorMessage = "Title must be between 3 and 50 characters")]
     [MinLength(3, ErrorMessage = "Title must be between 3 and 50 characters")]
@@ -19,7 +24,8 @@ public class CreateTaskDto
     public DateOnly DueDate { get; set; }
     
     [Required]
-    public int Priority { get; set; }
+    [JsonPropertyName("Priority")]
+    public int TaskPriorizationId { get; set; }
     
     [DataType(DataType.Date)]
     public DateTime? CompletionDate { get; set; }

@@ -21,6 +21,8 @@ public class TasksService : ITasksService
     {
         await _unitOfWork.TasksRepository.AddAsync(userTask);
         
+        _unitOfWork.Commit();
+        
         return ServiceResult<UserTask>.Success(userTask);
     }
 

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace PersonalTasksProject.DTOs.Responses;
 
 
-public record CreatedUserResponseDto(string Name, string Email, string Avatar)
+public class CreatedUserResponseDto(string Name, string Email, string Avatar) : IRequestDto
 {
     [Required]
     [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
