@@ -68,6 +68,7 @@ builder.Services.AddAutoMapper(typeof(CreateUserDtoMappingProfile));
 builder.Services.AddAutoMapper(typeof(CreateTaskDtoMappingProfile));
 
 builder.Services.AddSingleton<TokenProvider>();
+builder.Services.AddSingleton<SmtpEmailProvider>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
