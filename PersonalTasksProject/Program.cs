@@ -70,6 +70,14 @@ builder.Services.AddAutoMapper(typeof(CreateTaskDtoMappingProfile));
 builder.Services.AddSingleton<TokenProvider>();
 builder.Services.AddSingleton<SmtpEmailProvider>();
 
+builder.Services.AddCors(option =>
+{
+    option.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(option =>
@@ -117,6 +125,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+
+app.UseCors();
 
 app.UseAuthentication();
 
