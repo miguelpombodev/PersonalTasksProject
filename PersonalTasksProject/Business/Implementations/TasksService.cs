@@ -28,16 +28,16 @@ public class TasksService : ITasksService
 
     public async Task<ServiceResult<IEnumerable<CreatedUserTasks>>> GetAllUserTaskAsync(Guid userId)
     {
-        var resultTasks = await _unitOfWork.TasksRepository.GetAllByPropertyAsync(tasks => tasks.UserId == userId);
+        var resultTasks = await _unitOfWork.TasksRepository.GetAllTasksAsync(userId);
         
-        var tasks = resultTasks.OrderBy(task => task.TaskPriorizationId).Select(task => new CreatedUserTasks
+        var tasks = resultTasks.Select(task => new CreatedUserTasks
         {
             Id = task.Id,
             Title = task.Title,
             Description = task.Description,
             CompletionDate = task.CompletionDate,
             DueDate = task.DueDate,
-            Priority = task.TaskPriorizationId
+            Priority = task.Priority
         });
         
         return ServiceResult<IEnumerable<CreatedUserTasks>>.Success(tasks);

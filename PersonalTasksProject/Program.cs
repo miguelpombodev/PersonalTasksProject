@@ -8,6 +8,7 @@ using PersonalTasksProject.Business.Implementations;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.Context;
 using PersonalTasksProject.DTOs.Mappings;
+using PersonalTasksProject.Middlewares;
 using PersonalTasksProject.Providers;
 using PersonalTasksProject.Repositories.Implementations;
 using PersonalTasksProject.Repositories.Interfaces;
@@ -69,6 +70,10 @@ builder.Services.AddAutoMapper(typeof(CreateTaskDtoMappingProfile));
 
 builder.Services.AddSingleton<TokenProvider>();
 builder.Services.AddSingleton<SmtpEmailProvider>();
+builder.Services.AddSingleton<FileProvider>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandlerMiddleware>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(option =>
 {
@@ -82,6 +87,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(option =>
         {
+            option.SaveToken = true;
             option.RequireHttpsMetadata = false;
             option.TokenValidationParameters = new TokenValidationParameters
             {
@@ -94,24 +100,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(5)
             };
-
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-            {
-                option.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                        return Task.CompletedTask;
-                    },
-                    OnTokenValidated = context =>
-                    {
-                        Console.WriteLine("Token validated successfully");
-                        return Task.CompletedTask;
-                    }
-                };
-                
-            }
         }
     );
 
@@ -124,6 +112,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseExceptionHandler();
+
 app.MapControllers();
 app.UseRouting();
 

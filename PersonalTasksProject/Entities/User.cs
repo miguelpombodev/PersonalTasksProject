@@ -18,6 +18,6 @@ public class User : BaseIdentity
     [Required]
     public string Password { get; set; } = string.Empty;
     
-    public string AvatarUrl { get; set; } = "default.png";
+    public string? AvatarUrl { get; set; } = null;
     
 }

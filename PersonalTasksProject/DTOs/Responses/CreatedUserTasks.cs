@@ -10,7 +10,7 @@ public record CreatedUserTasks
     
     [JsonPropertyName("due_date")]
     public DateOnly DueDate { get; init; }
-    public int Priority { get; init; }
+    public string Priority { get; init; }
     
     [JsonPropertyName("completion_date")]
     public DateOnly? CompletionDate { get; init; }
