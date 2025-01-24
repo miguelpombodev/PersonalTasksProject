@@ -14,5 +14,6 @@ public class CreateUserDto: IRequestDto
     public required string Email { get; set;}
     
     [Required]
+    [MinLength(3, ErrorMessage = "Password cannot be less than 3 characters.")]
     public required string Password { get; set;}
 }
