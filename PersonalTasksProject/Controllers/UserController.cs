@@ -123,4 +123,42 @@ public class UserController : ControllerBase
       detail = "success!"
     });
   }
+
+  [HttpPatch("update/avatar")]
+  public async Task<IActionResult> UpdateAvatarImageAsync(
+    [FromServices] TokenProvider tokenProvider,
+    [FromServices] FileProvider fileProvider,
+    [FromHeader(Name = "Authorization")] string token,
+    IFormFile file
+    )
+  {
+    var decodedToken = tokenProvider.DecodeToken(token);
+
+    var userResult = await _userService.GetUserByEmailAsync(decodedToken);
+
+    if (!userResult.IsSuccess) return StatusCode(StatusCodes.Status404NotFound, new
+    {
+      detail = userResult.ErrorMessage
+    });
+    
+    var filePath = await fileProvider.SaveFileImageAsync(file);
+    
+    var resultFile = await _userService.UpdateUserAvatarAsync(userResult.Result.Id, filePath);
+
+    if (!resultFile.IsSuccess)
+    {
+      return StatusCode(StatusCodes.Status400BadRequest, new
+        {
+          detail = resultFile.ErrorMessage
+        }
+      );
+    }
+
+    
+    return StatusCode(StatusCodes.Status200OK, new
+    {
+      detail = "success!"
+    });
+  }
 }
+

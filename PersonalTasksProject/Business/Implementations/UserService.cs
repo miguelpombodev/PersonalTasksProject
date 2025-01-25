@@ -60,7 +60,19 @@ public class UserService: IUserService
 
         return ServiceResult<User>.Success(user);
     }
-    
+
+    public async Task<ServiceResult<int>> UpdateUserAvatarAsync(Guid id, string avatarFilePath)
+    {
+        var affectedRow = await _unitOfWork.UserRepository.UpdateUserAvatarAsync(id, avatarFilePath);
+
+        if (affectedRow == 0)
+        {
+           return ServiceResult<int>.Failure("User avatar could not be updated");
+        }
+
+        return ServiceResult<int>.Success(affectedRow);
+    }
+
 
     public async Task<bool?> DeleteUserAsync(Guid id)
     {

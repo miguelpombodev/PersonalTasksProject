@@ -4,12 +4,19 @@ public sealed class FileProvider
 {
     private readonly IWebHostEnvironment _environment;
 
+    private readonly string[] _allowedExtensions =
+    [
+        ".jpg",
+        ".jpeg",
+        ".png"
+    ];
+
     public FileProvider(IWebHostEnvironment environment)
     {
         _environment = environment;
     }
     
-    public async Task<string> SaveFileImageAsync(IFormFile imageFile, string[] allowedExtensions)
+    public async Task<string> SaveFileImageAsync(IFormFile imageFile)
     {
         
         if (imageFile == null) throw new ArgumentNullException(nameof(imageFile));
@@ -22,11 +29,11 @@ public sealed class FileProvider
             Directory.CreateDirectory(path);
         }
         
-        var extension = Path.GetExtension(imageFile.FileName);
+        var extension = Path.GetExtension(imageFile.FileName).ToLower();
 
-        if (!allowedExtensions.Contains(extension))
+        if (!_allowedExtensions.Contains(extension))
         {
-            throw new ArgumentException($"Only {string.Join(",", allowedExtensions)} are allowed.");
+            throw new ArgumentException($"Only {string.Join(",", _allowedExtensions)} are allowed.");
         }
 
         var fileName = $"{Guid.NewGuid().ToString()}{extension}";
