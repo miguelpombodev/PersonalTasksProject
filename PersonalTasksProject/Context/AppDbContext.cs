@@ -31,6 +31,4 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new UserTaskMapping());
         modelBuilder.ApplyConfiguration(new TaskPriorizationMapping());
     }
-
-
 }

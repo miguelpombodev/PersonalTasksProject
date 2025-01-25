@@ -19,5 +19,33 @@ public class TaskPriorizationMapping : IEntityTypeConfiguration<TaskPriorization
 
         
         builder.HasIndex(priority => priority.Name).IsUnique();
+
+        builder.HasData(
+            new TaskPriorization
+            {
+                Id = 1,
+                Name = "Critical"
+            },
+            new TaskPriorization
+            {
+                Id = 2,
+                Name = "High"
+            },
+            new TaskPriorization
+            {
+                Id = 3,
+                Name = "Medium"
+            },
+            new TaskPriorization
+            {
+                Id = 4,
+                Name = "Low"
+            },
+            new TaskPriorization
+            {
+                Id = 5,
+                Name = "None"
+            }
+            );
     }
 }
