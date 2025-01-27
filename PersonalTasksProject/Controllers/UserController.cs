@@ -141,9 +141,9 @@ public class UserController : ControllerBase
       detail = userResult.ErrorMessage
     });
     
-    var filePath = await fileProvider.SaveFileImageAsync(file);
+    var fileUrlPath = await fileProvider.SaveFileImageAsync(file);
     
-    var resultFile = await _userService.UpdateUserAvatarAsync(userResult.Result.Id, filePath);
+    var resultFile = await _userService.UpdateUserAvatarAsync(userResult.Result.Id, fileUrlPath);
 
     if (!resultFile.IsSuccess)
     {
