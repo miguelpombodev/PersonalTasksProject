@@ -3,6 +3,11 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+
+PersonalTasksProject/appsettings.Development.json
+PersonalTasksProject/appsettings.Production.json
+
+
 # dotenv files
 .env
 
