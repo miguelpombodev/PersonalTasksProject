@@ -13,6 +13,7 @@ namespace PersonalTasksProject.Controllers;
 [ApiController]
 public class UserController : ControllerBase
 {
+  private readonly int _maxFileSize = 30 * 1024 * 1024;
 
   private readonly IUserService _userService;
   private readonly TokenProvider _tokenProvider;
@@ -132,6 +133,14 @@ public class UserController : ControllerBase
     IFormFile file
     )
   {
+    if (file.Length > _maxFileSize)
+    {
+      return StatusCode(StatusCodes.Status400BadRequest, new
+      {
+        detail = "File size is too big for the request."
+      });
+    }
+    
     var decodedToken = tokenProvider.DecodeToken(token);
 
     var userResult = await _userService.GetUserByEmailAsync(decodedToken);

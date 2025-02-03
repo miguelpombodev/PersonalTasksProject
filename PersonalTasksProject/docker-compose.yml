@@ -1,0 +1,45 @@
+version: "3.4"
+
+services:
+  personal_manager_api_backend_container:
+    build:
+      context: .
+    container_name: personal_manager_api_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    networks:
+      - personal_app_net
+    depends_on:
+      personal_manager_api_db_container:
+        condition: service_healthy
+    volumes:
+      - dataprotection-keys:/root/.aspnet/DataProtection-Keys
+
+  personal_manager_api_db_container:
+    image: postgres
+    container_name: personal_manager_api_db
+    ports:
+      - "5432:5432"
+    restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d PersonalTasksDatabase -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    environment:
+      - POSTGRES_PASSWORD=docker123
+    networks:
+      - personal_app_net
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+networks:
+  personal_app_net:
+    driver: bridge
+
+volumes:
+  dataprotection-keys:
+  pg_data:

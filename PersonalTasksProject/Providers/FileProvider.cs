@@ -1,13 +1,16 @@
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace PersonalTasksProject.Providers;
 
 public sealed class FileProvider
 {
     private readonly IWebHostEnvironment _environment;
-    
-    private readonly Cloudinary _cloudinary;
+    private readonly IAmazonS3 _s3Client;
+    private readonly string _bucketName;
+    private readonly string _fileKeyBase = "uploads/";
 
     private readonly string[] _allowedExtensions =
     [
@@ -16,56 +19,43 @@ public sealed class FileProvider
         ".png"
     ];
 
-    public FileProvider(IWebHostEnvironment environment, IConfiguration configuration)
+    public FileProvider(IWebHostEnvironment environment, IAmazonS3 s3Client, IConfiguration configuration)
     {
         _environment = environment;
-        _cloudinary = new Cloudinary(configuration["CloudinaryURL"])
-        {
-            Api =
-            {
-                Secure = true
-            }
-        };
+        _s3Client = s3Client;
+        _bucketName = configuration["AWSS3:BucketName"];
     }
     
     public async Task<string> SaveFileImageAsync(IFormFile imageFile)
     {
-        if (imageFile == null) throw new ArgumentNullException(nameof(imageFile));
-        
-        var contentPath = _environment.ContentRootPath;
-        var path = Path.Combine(contentPath, "Uploads");
-
-        if (!Directory.Exists(path))
+        if (imageFile == null | imageFile.Length <= 0) throw new ArgumentNullException(nameof(imageFile));
+        using (var stream = new MemoryStream())
         {
-            Directory.CreateDirectory(path);
-        }
+            await imageFile.CopyToAsync(stream);
         
-        var extension = Path.GetExtension(imageFile.FileName).ToLower();
-
-        if (!_allowedExtensions.Contains(extension))
-        {
-            throw new ArgumentException($"Only {string.Join(",", _allowedExtensions)} are allowed.");
-        }
-
-        var fileName = $"{Guid.NewGuid().ToString()}{extension}";
-        var fileNameWithPath = Path.Combine(path, fileName);
-        
-        await using var stream = new FileStream(fileNameWithPath, FileMode.Create);
-        await imageFile.CopyToAsync(stream);
-        
-        var uploadParams = new ImageUploadParams()
-        {
-            File = new FileDescription(fileNameWithPath),
-            UseFilename = true,
-            UniqueFilename = false,
-            Overwrite = true,
+            var putRequest = new PutObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = $"{_fileKeyBase}{imageFile.FileName}",
+                InputStream = stream,
+            };
             
-        };  
+            var response = await _s3Client.PutObjectAsync(putRequest);
         
-        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception("Error saving image");
+            } 
+            
+            var urlRequest = new GetPreSignedUrlRequest
+            {
+                BucketName = _bucketName,
+                Key = $"{_fileKeyBase}{imageFile.FileName}",
+                Expires = DateTime.UtcNow.AddHours(1)
+            };
+            var presignedUrl = _s3Client.GetPreSignedURL(urlRequest);
         
-        File.Delete(fileNameWithPath);
-        return uploadResult.SecureUri.AbsoluteUri;
-
+            return presignedUrl;
+        }
     }
 }

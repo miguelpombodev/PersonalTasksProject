@@ -1,29 +1,22 @@
-﻿# Stage 1: Build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-
-# Copiar apenas os arquivos de projeto primeiro para aproveitar o cache das dependências
-COPY ["*.csproj", "./"]
-RUN dotnet restore
-
-# Copiar o resto do código fonte
-COPY . .
-RUN dotnet build -c Release -o /app/build
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
-
-# Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER app
 WORKDIR /app
-
-# Criar um usuário não-root para segurança
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
-USER appuser
-
-# Copiar apenas os arquivos publicados do stage de build
-COPY --from=build /app/publish .
-
-# Configurar a porta e o ambiente
-ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+EXPOSE 8081
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["PersonalTasksProject.csproj","./"]
+RUN dotnet restore "./PersonalTasksProject.csproj"
+COPY . .
+WORKDIR /src/.
+RUN dotnet build "PersonalTasksProject.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "PersonalTasksProject.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "PersonalTasksProject.dll"]

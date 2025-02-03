@@ -1,5 +1,8 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +11,7 @@ using PersonalTasksProject.Business.Implementations;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.Context;
 using PersonalTasksProject.DTOs.Mappings;
+using PersonalTasksProject.Extensions;
 using PersonalTasksProject.Middlewares;
 using PersonalTasksProject.Providers;
 using PersonalTasksProject.Repositories.Implementations;
@@ -103,6 +107,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         }
     );
 
+var awsSettings = builder.Configuration.GetSection("AWSCredentials");
+var credentials = new BasicAWSCredentials(awsSettings["AccessKeyId"], awsSettings["SecretAccessKey"]);
+
+var s3Config = new AmazonS3Config()
+{
+    RegionEndpoint = RegionEndpoint.SAEast1
+};
+
+builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(credentials, s3Config));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -111,10 +125,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.ApplyMigrationsAsync();
+
 app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
-
 app.MapControllers();
 app.UseRouting();
 
@@ -123,6 +138,5 @@ app.UseCors();
 app.UseAuthentication();
 
 app.UseAuthorization();
-
 
 app.Run();
