@@ -36,6 +36,11 @@ public class UserController : ControllerBase
       detail = result.ErrorMessage
     });
 
+    if (!DataEncryptionProvider.Verify(result.Result.Password, request.Password)) return StatusCode(StatusCodes.Status404NotFound, new
+    {
+      detail = "Check your email or password please"
+    });
+
     var token = _tokenProvider.CreateToken(result.Result);
 
     return StatusCode(StatusCodes.Status200OK, new
