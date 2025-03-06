@@ -1,18 +1,18 @@
 using MailKit.Net.Smtp;
 using MimeKit;
+using PersonalTasksProject.Configuration;
 using PersonalTasksProject.Entities;
 
 namespace PersonalTasksProject.Providers;
 
 public sealed class SmtpEmailProvider
 {
-    private readonly SmtpServerConfig _smtpServer;
-    public SmtpEmailProvider(IConfiguration configuration)
+    private readonly IAppConfiguration _appConfiguration;
+    public SmtpEmailProvider(IAppConfiguration appConfiguration)
     {
-        var smtpServerConfig = new SmtpServerConfig();
-        configuration.GetSection("SmtpMailTrap").Bind(smtpServerConfig);
-        _smtpServer = smtpServerConfig;
+       _appConfiguration = appConfiguration;
     }
+    
     public async Task<string> SendEmail(string to, string subject, string body)
     {
         var message = _createMessage(to, subject, body);
@@ -21,8 +21,8 @@ public sealed class SmtpEmailProvider
         
         try
         {
-            await client.ConnectAsync(_smtpServer.Host, _smtpServer.Port, false);
-            await client.AuthenticateAsync(_smtpServer.Username, _smtpServer.Password);
+            await client.ConnectAsync(_appConfiguration.Smtp.Host, _appConfiguration.Smtp.Port, false);
+            await client.AuthenticateAsync(_appConfiguration.Smtp.Username, _appConfiguration.Smtp.Password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
             

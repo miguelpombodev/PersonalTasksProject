@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonalTasksProject.Business.Interfaces;
+using PersonalTasksProject.Configuration;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Providers;
@@ -13,17 +14,17 @@ namespace PersonalTasksProject.Controllers
   [Authorize]
   public class TasksController : ControllerBase
   {
-    private readonly IConfiguration _configuration;
     private readonly ITasksService _tasksService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
+    private readonly AppConfiguration _appConfiguration;
 
-    public TasksController(ITasksService tasksService, IUserService userService, IMapper mapper, IConfiguration configuration)
+    public TasksController(ITasksService tasksService, IUserService userService, IMapper mapper, AppConfiguration appConfiguration)
     {
-      _configuration = configuration;
       _tasksService = tasksService;
       _userService = userService;
       _mapper = mapper;
+      _appConfiguration = appConfiguration;
     }
 
     [HttpPost("create")]
@@ -103,7 +104,7 @@ namespace PersonalTasksProject.Controllers
 
     private string _buildCreatedTaskEmailBody(CreateTaskDto task)
     {
-      var rawEmailBody = _configuration.GetValue<string>("CreatedTaskEmailBody").Replace("{task_title}", task.Title).Replace("{task_description}", task.Description).Replace("{task_due_date}", task.DueDate.ToString("dd/MM/yyyy"));
+      var rawEmailBody = _appConfiguration.EmailBodies["Create Task Email"].Replace("{task_title}", task.Title).Replace("{task_description}", task.Description).Replace("{task_due_date}", task.DueDate.ToString("dd/MM/yyyy"));
       return rawEmailBody;
     }
   }

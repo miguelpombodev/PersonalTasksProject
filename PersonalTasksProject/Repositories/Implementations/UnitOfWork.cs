@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using PersonalTasksProject.Context;
 using PersonalTasksProject.Repositories.Interfaces;
 

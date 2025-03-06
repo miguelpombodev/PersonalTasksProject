@@ -6,6 +6,7 @@ using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Extensions;
 using PersonalTasksProject.Providers;
+using PersonalTasksProject.Providers.Interfaces;
 
 namespace PersonalTasksProject.Controllers;
 
@@ -16,14 +17,14 @@ public class UserController : ControllerBase
   private readonly int _maxFileSize = 30 * 1024 * 1024;
 
   private readonly IUserService _userService;
-  private readonly TokenProvider _tokenProvider;
   private readonly IMapper _mapper;
+  private readonly ITokenProvider _tokenProvider;
 
-  public UserController(IUserService userService, TokenProvider tokenProvider, IMapper mapper)
+  public UserController(IUserService userService, IMapper mapper, ITokenProvider tokenProvider)
   {
     _userService = userService;
-    _tokenProvider = tokenProvider;
     _mapper = mapper;
+    _tokenProvider = tokenProvider;
   }
 
   [HttpPost("login")]
@@ -50,9 +51,9 @@ public class UserController : ControllerBase
   }
 
   [HttpGet("get")]
-  public async Task<IActionResult> GetOneUserAsync([FromServices] TokenProvider tokenProvider, [FromHeader(Name = "Authorization")] string token)
+  public async Task<IActionResult> GetOneUserAsync([FromHeader(Name = "Authorization")] string token)
   {
-    var decodedToken = tokenProvider.DecodeToken(token);
+    var decodedToken = _tokenProvider.DecodeToken(token);
 
     var result = await _userService.GetUserByEmailAsync(decodedToken);
 

@@ -11,6 +11,8 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
     public UserRepository(AppDbContext context) : base(context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        
         _userDbSet = context.Set<User>();
     }
 
