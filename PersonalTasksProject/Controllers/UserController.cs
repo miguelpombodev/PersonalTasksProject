@@ -5,6 +5,7 @@ using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Extensions;
+using PersonalTasksProject.Filters;
 using PersonalTasksProject.Providers;
 using PersonalTasksProject.Providers.Interfaces;
 
@@ -12,6 +13,7 @@ namespace PersonalTasksProject.Controllers;
 
 [Route("api/users")]
 [ApiController]
+[ServiceFilter(typeof(LoggingFilter))]
 public class UserController : ControllerBase
 {
   private readonly int _maxFileSize = 30 * 1024 * 1024;

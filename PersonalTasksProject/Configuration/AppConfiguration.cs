@@ -9,6 +9,7 @@ using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.Configuration.Settings;
 using PersonalTasksProject.Context;
 using PersonalTasksProject.DTOs.Mappings;
+using PersonalTasksProject.Filters;
 using PersonalTasksProject.Providers;
 using PersonalTasksProject.Providers.Interfaces;
 using PersonalTasksProject.Repositories.Implementations;
@@ -43,7 +44,7 @@ public class AppConfiguration : IAppConfiguration
     public SMTPConfigurationSettings Smtp { get; set; } = new();
     public JwtConfigurationSettings Jwt { get; set; } = new();
     public AwsConfigurationSettings Aws { get; set; } = new();
-    public Dictionary<string, string> EmailBodies { get; set; }
+    public Dictionary<string, string> EmailBodies { get; set; } = new();
 
     private static string GetAndValidateConfigurationValue(WebApplicationBuilder builder, string key,
         bool isConnectionString = false)
@@ -97,14 +98,14 @@ public class AppConfiguration : IAppConfiguration
                 appConfig.PostgresConnection
             )
         );
-        builder.Services.AddSingleton(appConfig);
+        builder.Services.AddSingleton<IAppConfiguration>(appConfig);
     }
 
     public static void BuildAppLogger(WebApplicationBuilder builder)
     {
         builder.Host.UseSerilog((hostContext, services, configuration) =>
         {
-            configuration.WriteTo.Console().CreateLogger();
+            configuration.WriteTo.Console();
         });
     }
 
@@ -125,6 +126,8 @@ public class AppConfiguration : IAppConfiguration
         builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
         builder.Services.AddSingleton<SmtpEmailProvider>();
         builder.Services.AddSingleton<FileProvider>();
+
+        builder.Services.AddScoped<LoggingFilter>();
     }
 
     public static void BuildSwaggerService(WebApplicationBuilder builder)

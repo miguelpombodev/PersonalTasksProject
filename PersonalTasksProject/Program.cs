@@ -30,8 +30,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 AppConfiguration.BuildSwaggerService(builder);
 
-AppConfiguration.BuildAppServices(builder);
-
 builder.Services.AddExceptionHandler<GlobalExceptionHandlerMiddleware>();
 builder.Services.AddProblemDetails();
 
@@ -63,6 +61,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             };
         }
     );
+AppConfiguration.BuildAppServices(builder);
 
 AppConfiguration.BuildAwsServices(builder);
 
