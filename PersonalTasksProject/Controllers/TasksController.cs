@@ -1,11 +1,13 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PersonalTasksProject.Business.Interfaces;
 using PersonalTasksProject.Configuration;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.Entities;
 using PersonalTasksProject.Providers;
+using PersonalTasksProject.Providers.Interfaces;
 
 namespace PersonalTasksProject.Controllers
 {
@@ -17,20 +19,20 @@ namespace PersonalTasksProject.Controllers
     private readonly ITasksService _tasksService;
     private readonly IUserService _userService;
     private readonly IMapper _mapper;
-    private readonly AppConfiguration _appConfiguration;
+    private readonly IAppConfiguration _appConfiguration;
 
-    public TasksController(ITasksService tasksService, IUserService userService, IMapper mapper, AppConfiguration appConfiguration)
+    public TasksController(ITasksService tasksService, IUserService userService, IMapper mapper, IAppConfiguration appConfiguration)
     {
       _tasksService = tasksService;
       _userService = userService;
       _mapper = mapper;
-      _appConfiguration = appConfiguration;
+      _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateTaskAsync(
         CreateTaskDto body,
-        [FromServices] TokenProvider tokenProvider,
+        [FromServices] ITokenProvider tokenProvider,
         [FromServices] SmtpEmailProvider smtpEmailProvider,
         [FromHeader(Name = "Authorization")] string token)
     {
@@ -53,8 +55,10 @@ namespace PersonalTasksProject.Controllers
 
     [HttpGet("get")]
     public async Task<IActionResult> GetAllTasksAsync(
-        [FromServices] TokenProvider tokenProvider,
-        [FromHeader(Name = "Authorization")] string token)
+        [FromServices] ITokenProvider tokenProvider,
+        [FromHeader(Name = "Authorization")] string token,
+      [FromQuery] PaginationParameters pagination
+      )
     {
       var decodedToken = tokenProvider.DecodeToken(token);
 
@@ -68,9 +72,11 @@ namespace PersonalTasksProject.Controllers
         });
       }
 
-      var tasksList = await _tasksService.GetAllUserTaskAsync(checkUserResult.Result.Id);
+      var tasksList = await _tasksService.GetAllUserTaskAsync(checkUserResult.Result.Id, pagination);
+      
+      Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(tasksList.Result.Pagination));
 
-      return StatusCode(StatusCodes.Status200OK, tasksList.Result);
+      return StatusCode(StatusCodes.Status200OK, tasksList.Result.Data);
     }
 
     [HttpDelete("delete/{taskId:Guid}")]

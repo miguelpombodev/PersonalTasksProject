@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PersonalTasksProject.Entities;
 
-public class UserTasksBase : BaseIdentity
+public class UserTasksBase : BaseIdentity, IUserTaskBase
 {
     [Required]
     [StringLength(50)]

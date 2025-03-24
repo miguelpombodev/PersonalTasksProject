@@ -88,4 +88,12 @@ public abstract class BaseRepository<T> : IBaseRepository<T>
             throw;
         }
     }
+
+    // protected async Task<List<T>> PaginateAsync(IQueryable<T> source, int pageNumber, int pageSize)
+    // {
+    //     var count = source.Count();
+    //     var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+    //
+    //     return items;
+    // }
 }

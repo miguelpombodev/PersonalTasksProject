@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PersonalTasksProject.Entities;
 
-public class BaseIdentity
+public abstract class BaseIdentity : IBaseEntity
 {
     public BaseIdentity()
     {

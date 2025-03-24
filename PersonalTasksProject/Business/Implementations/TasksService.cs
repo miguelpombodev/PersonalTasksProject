@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using PersonalTasksProject.Business.Interfaces;
+using PersonalTasksProject.DTOs.Database;
 using PersonalTasksProject.DTOs.Requests;
 using PersonalTasksProject.DTOs.Responses;
 using PersonalTasksProject.Entities;
@@ -26,21 +27,15 @@ public class TasksService : ITasksService
         return ServiceResult<UserTask>.Success(userTask);
     }
 
-    public async Task<ServiceResult<IEnumerable<CreatedUserTasks>>> GetAllUserTaskAsync(Guid userId)
+    public async Task<ServiceResult<PaginatedResponse<CreatedUserTasks>>> GetAllUserTaskAsync(Guid userId, PaginationParameters paginationParameters)
     {
-        var resultTasks = await _unitOfWork.TasksRepository.GetAllTasksAsync(userId);
+        var resultTasks = await _unitOfWork.TasksRepository.GetAllTasksAsync(userId, paginationParameters);
         
-        var tasks = resultTasks.Select(task => new CreatedUserTasks
-        {
-            Id = task.Id,
-            Title = task.Title,
-            Description = task.Description,
-            CompletionDate = task.CompletionDate,
-            DueDate = task.DueDate,
-            Priority = task.Priority
-        });
+        var tasks = CreatedUserTasks.ToList(resultTasks.Data);
+
+        var paginatedTasksResponse = new PaginatedResponse<CreatedUserTasks>(resultTasks.Pagination, tasks);
         
-        return ServiceResult<IEnumerable<CreatedUserTasks>>.Success(tasks);
+        return ServiceResult<PaginatedResponse<CreatedUserTasks>>.Success(paginatedTasksResponse);
     }
 
     public async Task<ServiceResult<UserTask>> GetUserTaskByIdAsync(Guid userTaskId)
